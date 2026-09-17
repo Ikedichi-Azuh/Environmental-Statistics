@@ -1,0 +1,13 @@
+name: Test Lecture Repository Access
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-access:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check access to Lecture 13
+        run: |
+          git ls-remote https://x-access-token:${{ secrets.LECTURE_REPO_TOKEN }}@github.com/Ikedichi-Azuh/Environmental-Statistics-Lecture-13-Plotting-and-Variable-importance.git HEAD
