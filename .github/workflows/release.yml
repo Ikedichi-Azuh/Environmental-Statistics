@@ -234,7 +234,7 @@ jobs:
               # 08:45
               # ----------------------------------------------
 
-              if current_time >= time(8, 45):
+              if current_time >= time(22,26):
 
                   print(
                       "08:45 release threshold reached."
