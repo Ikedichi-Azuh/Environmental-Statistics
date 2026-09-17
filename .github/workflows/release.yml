@@ -1,0 +1,66 @@
+name: Release Course Materials
+
+on:
+  schedule:
+    - cron: "45 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-lecture-13:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout student repository
+        uses: actions/checkout@v4
+
+      - name: Clone private Lecture 13 repository
+        env:
+          TOKEN: ${{ secrets.LECTURE_REPO_TOKEN }}
+        run: |
+          git clone \
+            https://x-access-token:${TOKEN}@github.com/Ikedichi-Azuh/Environmental-Statistics-Lecture-13-Plotting-and-Variable-importance.git \
+            lecture13-source
+
+      - name: Check source files
+        run: |
+          echo "Lecture 13 source files:"
+          ls -la lecture13-source
+
+      - name: Create Lecture 13 folder
+        run: |
+          mkdir -p Lecture-13
+
+      - name: Release currently available materials
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          TIME=$(date -u +%H:%M)
+
+          echo "Current UTC date: $TODAY"
+          echo "Current UTC time: $TIME"
+
+          cp lecture13-source/README.md Lecture-13/
+          cp lecture13-source/diabetes.csv Lecture-13/
+
+          # The actual time-based release logic will be added next.
+          echo "Initial Lecture 13 files copied."
+
+      - name: Show student repository
+        run: |
+          find Lecture-13 -maxdepth 1 -type f -print
+
+      - name: Commit released materials
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add Lecture-13
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Release Lecture 13 materials"
+            git push
+          fi
