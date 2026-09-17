@@ -85,18 +85,18 @@ jobs:
 
 
           # ==================================================
-          # TEMPORARY TEST RELEASE TIMES
+          # REAL LECTURE 13 RELEASE TIMES
           #
-          # 00:02 -> README + slides + teaching notes
-          # 00:05 -> exercise question + data
-          # 00:06 -> exercise solution
-          # 00:07 -> homework question
+          # 08:45 -> README + slides + teaching notes
+          # 10:00 -> exercise question + data
+          # 12:00 -> exercise solution
+          # 12:01 -> homework question
           # ==================================================
 
-          slides_time = time(00, 02)
-          exercise_time = time(00, 05)
-          solution_time = time(00, 06)
-          homework_time = time(00, 07)
+          slides_time = time(8, 45)
+          exercise_time = time(10, 0)
+          solution_time = time(12, 0)
+          homework_time = time(12, 1)
 
 
           # ==================================================
@@ -201,8 +201,8 @@ jobs:
           # ==================================================
           # SYNCHRONIZE A FILE
           #
-          # Unlike the previous version, an existing file
-          # WILL be updated if the private version changes.
+          # Existing files WILL be updated if the private
+          # version changes.
           # ==================================================
 
           def sync_file(filename):
@@ -239,7 +239,7 @@ jobs:
           if today == lecture_date:
 
               # ----------------------------------------------
-              # 23:15
+              # 08:45
               # README + slides + teaching notes
               # ----------------------------------------------
 
@@ -247,11 +247,10 @@ jobs:
 
                   print("")
                   print(
-                      "23:15 release threshold reached."
+                      "08:45 release threshold reached."
                   )
 
 
-                  # IMPORTANT:
                   # The README comes directly from the
                   # private lecture repository.
 
@@ -269,7 +268,7 @@ jobs:
 
 
               # ----------------------------------------------
-              # 23:20
+              # 10:00
               # Exercise question + data
               # ----------------------------------------------
 
@@ -277,7 +276,7 @@ jobs:
 
                   print("")
                   print(
-                      "23:20 release threshold reached."
+                      "10:00 release threshold reached."
                   )
 
                   sync_file(
@@ -290,7 +289,7 @@ jobs:
 
 
               # ----------------------------------------------
-              # 23:25
+              # 12:00
               # Exercise solution
               # ----------------------------------------------
 
@@ -298,7 +297,7 @@ jobs:
 
                   print("")
                   print(
-                      "23:25 release threshold reached."
+                      "12:00 release threshold reached."
                   )
 
                   sync_file(
@@ -307,7 +306,7 @@ jobs:
 
 
               # ----------------------------------------------
-              # 23:26
+              # 12:01
               # Homework question
               # ----------------------------------------------
 
@@ -315,7 +314,7 @@ jobs:
 
                   print("")
                   print(
-                      "23:26 release threshold reached."
+                      "12:01 release threshold reached."
                   )
 
                   sync_file(
@@ -339,7 +338,6 @@ jobs:
           # BEFORE RELEASE:
           # CREATE TEMPORARY PUBLIC README
           #
-          # IMPORTANT:
           # Once the private README has been released,
           # we DO NOT overwrite it with this message.
           # ==================================================
