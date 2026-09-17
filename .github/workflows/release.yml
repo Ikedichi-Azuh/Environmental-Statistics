@@ -15,15 +15,16 @@ jobs:
 
     steps:
 
-      # --------------------------------------------------
+      # ==================================================
       # 1. Checkout student repository
-      # --------------------------------------------------
+      # ==================================================
       - name: Checkout student repository
         uses: actions/checkout@v5
 
-      # --------------------------------------------------
+
+      # ==================================================
       # 2. Clone private Lecture 13 repository
-      # --------------------------------------------------
+      # ==================================================
       - name: Clone Lecture 13 repository
         env:
           TOKEN: ${{ secrets.LECTURE_REPO_TOKEN }}
@@ -32,24 +33,27 @@ jobs:
             https://x-access-token:${TOKEN}@github.com/Ikedichi-Azuh/Environmental-Statistics-Lecture-13-Plotting-and-Variable-importance.git \
             lecture13-source
 
-      # --------------------------------------------------
+
+      # ==================================================
       # 3. Set up Python
-      # --------------------------------------------------
+      # ==================================================
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.x"
 
-      # --------------------------------------------------
+
+      # ==================================================
       # 4. Install PyYAML
-      # --------------------------------------------------
+      # ==================================================
       - name: Install Python dependencies
         run: |
           pip install pyyaml
 
-      # --------------------------------------------------
-      # 5. Determine availability and release materials
-      # --------------------------------------------------
+
+      # ==================================================
+      # 5. Release materials
+      # ==================================================
       - name: Release available materials
         env:
           TZ: Europe/Berlin
@@ -73,29 +77,26 @@ jobs:
           source = Path("lecture13-source")
           destination = Path("Lecture-13")
 
-          destination.mkdir(exist_ok=True)
+
+          destination.mkdir(
+              parents=True,
+              exist_ok=True
+          )
 
 
           # ==================================================
           # TEMPORARY TEST RELEASE TIMES
           #
-          # 23:15 -> slides + teaching notes
-          # 23:20 -> exercise question + data
-          # 23:25 -> exercise solution
-          # 23:26 -> homework question
-          #
-          # THESE ARE ONLY FOR THE CURRENT TEST.
-          # They will later be changed back to:
-          #
-          # 08:45
-          # 10:00
-          # 12:00
-          # 12:01
+          # 23:25 -> README + slides + teaching notes
+          # 23:30 -> exercise question + data
+          # 23:32 -> exercise solution
+          # 23:35 -> homework question
           # ==================================================
-          slides_time = time(23, 15)
-          exercise_time = time(23, 20)
-          solution_time = time(23, 25)
-          homework_time = time(23, 26)
+
+          slides_time = time(23, 25)
+          exercise_time = time(23, 30)
+          solution_time = time(23, 32)
+          homework_time = time(23, 35)
 
 
           # ==================================================
@@ -106,6 +107,7 @@ jobs:
 
           today = now.date()
           current_time = now.time()
+
 
           print("")
           print("==========================================")
@@ -150,7 +152,7 @@ jobs:
 
 
           # ==================================================
-          # DETERMINE OVERALL LECTURE STATUS
+          # DETERMINE RELEASE STATUS
           # ==================================================
 
           if today < lecture_date:
@@ -172,7 +174,7 @@ jobs:
 
 
           # ==================================================
-          # DETERMINE WHICH RELEASE STAGES ARE ACTIVE
+          # DETERMINE RELEASE STAGES
           # ==================================================
 
           release_slides = (
@@ -197,10 +199,13 @@ jobs:
 
 
           # ==================================================
-          # FUNCTION TO COPY A FILE
+          # SYNCHRONIZE A FILE
+          #
+          # Unlike the previous version, an existing file
+          # WILL be updated if the private version changes.
           # ==================================================
 
-          def copy_file(filename):
+          def sync_file(filename):
 
               source_file = source / filename
               destination_file = destination / filename
@@ -216,15 +221,6 @@ jobs:
                   return
 
 
-              if destination_file.exists():
-
-                  print(
-                      f"Already released: {filename}"
-                  )
-
-                  return
-
-
               shutil.copy2(
                   source_file,
                   destination_file
@@ -232,39 +228,48 @@ jobs:
 
 
               print(
-                  f"RELEASED: {filename}"
+                  f"SYNCED: {filename}"
               )
 
 
           # ==================================================
-          # RELEASE FILES
+          # RELEASE / SYNCHRONIZE MATERIALS
           # ==================================================
 
           if today == lecture_date:
 
               # ----------------------------------------------
-              # 22:47
-              # Slides + teaching notes
+              # 23:15
+              # README + slides + teaching notes
               # ----------------------------------------------
 
               if release_slides:
 
                   print("")
                   print(
-                      "22:47 release threshold reached."
+                      "23:15 release threshold reached."
                   )
 
-                  copy_file(
+
+                  # IMPORTANT:
+                  # The README comes directly from the
+                  # private lecture repository.
+
+                  sync_file(
+                      "README.md"
+                  )
+
+                  sync_file(
                       "Lecture13_slides.pdf"
                   )
 
-                  copy_file(
+                  sync_file(
                       "Env_Stat_Lecture13.pdf"
                   )
 
 
               # ----------------------------------------------
-              # 22:52
+              # 23:20
               # Exercise question + data
               # ----------------------------------------------
 
@@ -272,20 +277,20 @@ jobs:
 
                   print("")
                   print(
-                      "22:52 release threshold reached."
+                      "23:20 release threshold reached."
                   )
 
-                  copy_file(
+                  sync_file(
                       "Exercise_13_Question.ipynb"
                   )
 
-                  copy_file(
+                  sync_file(
                       "diabetes.csv"
                   )
 
 
               # ----------------------------------------------
-              # 22:57
+              # 23:25
               # Exercise solution
               # ----------------------------------------------
 
@@ -293,16 +298,16 @@ jobs:
 
                   print("")
                   print(
-                      "22:57 release threshold reached."
+                      "23:25 release threshold reached."
                   )
 
-                  copy_file(
+                  sync_file(
                       "Exercise_13_Solution.ipynb"
                   )
 
 
               # ----------------------------------------------
-              # 22:58
+              # 23:26
               # Homework question
               # ----------------------------------------------
 
@@ -310,10 +315,10 @@ jobs:
 
                   print("")
                   print(
-                      "22:58 release threshold reached."
+                      "23:26 release threshold reached."
                   )
 
-                  copy_file(
+                  sync_file(
                       "Homework_13_Question.ipynb"
                   )
 
@@ -326,32 +331,46 @@ jobs:
               )
 
               print(
-                  "No Lecture 13 materials will be "
-                  "released today."
+                  "No Lecture 13 materials will be released."
               )
 
 
           # ==================================================
-          # CREATE STUDENT-FACING README
+          # BEFORE RELEASE:
+          # CREATE TEMPORARY PUBLIC README
+          #
+          # IMPORTANT:
+          # Once the private README has been released,
+          # we DO NOT overwrite it with this message.
           # ==================================================
 
-          readme = []
+          public_readme = destination / "README.md"
 
-          readme.append(
-              f"# Lecture {lecture_number}"
+
+          private_readme_released = (
+              public_readme.exists()
+              and (
+                  today > lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time >= slides_time
+                  )
+              )
           )
 
-          readme.append("")
 
+          if not private_readme_released:
 
-          # --------------------------------------------------
-          # NOT YET AVAILABLE
-          # --------------------------------------------------
-
-          if today < lecture_date:
+              readme = []
 
               readme.append(
-                  "## NOT YET AVAILABLE"
+                  f"# Lecture {lecture_number}"
+              )
+
+              readme.append("")
+
+              readme.append(
+                  "## MATERIAL NOT YET AVAILABLE"
               )
 
               readme.append("")
@@ -363,178 +382,42 @@ jobs:
 
               readme.append("")
 
-
-          # --------------------------------------------------
-          # RELEASE DAY
-          # --------------------------------------------------
-
-          elif today == lecture_date:
-
               readme.append(
-                  "## RELEASE DAY"
-              )
-
-              readme.append("")
-
-              readme.append(
-                  "Materials are being released progressively."
+                  f"Materials will be released from "
+                  f"**{slides_time.strftime('%H:%M')}** "
+                  f"(Berlin time)."
               )
 
               readme.append("")
 
 
-          # --------------------------------------------------
-          # PAST RELEASE DATE
-          # --------------------------------------------------
+              public_readme.write_text(
+                  "\n".join(readme) + "\n",
+                  encoding="utf-8"
+              )
+
+
+              print("")
+              print("==========================================")
+              print("TEMPORARY PUBLIC README")
+              print("==========================================")
+              print(
+                  "\n".join(readme)
+              )
+              print("==========================================")
+
 
           else:
 
-              readme.append(
-                  "## AVAILABLE"
+              print("")
+              print(
+                  "Private lecture README is now public."
               )
 
-              readme.append("")
-
-
-          # ==================================================
-          # MATERIAL STATUS
-          # ==================================================
-
-          readme.append(
-              "## Material availability"
-          )
-
-          readme.append("")
-
-
-          # --------------------------------------------------
-          # Lecture slides
-          # --------------------------------------------------
-
-          if release_slides or (
-              destination / "Lecture13_slides.pdf"
-          ).exists():
-
-              readme.append(
-                  "- ✅ Lecture slides — **AVAILABLE**"
+              print(
+                  "It will not be replaced by the "
+                  "temporary availability message."
               )
-
-          else:
-
-              readme.append(
-                  f"- ⏳ Lecture slides — "
-                  f"available at **{slides_time.strftime('%H:%M')}**"
-              )
-
-
-          # --------------------------------------------------
-          # Teaching notes
-          # --------------------------------------------------
-
-          if release_slides or (
-              destination / "Env_Stat_Lecture13.pdf"
-          ).exists():
-
-              readme.append(
-                  "- ✅ Teaching notes — **AVAILABLE**"
-              )
-
-          else:
-
-              readme.append(
-                  f"- ⏳ Teaching notes — "
-                  f"available at **{slides_time.strftime('%H:%M')}**"
-              )
-
-
-          # --------------------------------------------------
-          # Exercise question
-          # --------------------------------------------------
-
-          if release_exercise or (
-              destination / "Exercise_13_Question.ipynb"
-          ).exists():
-
-              readme.append(
-                  "- ✅ Exercise question — **AVAILABLE**"
-              )
-
-          else:
-
-              readme.append(
-                  f"- ⏳ Exercise question — "
-                  f"available at **{exercise_time.strftime('%H:%M')}**"
-              )
-
-
-          # --------------------------------------------------
-          # Exercise solution
-          # --------------------------------------------------
-
-          if release_solution or (
-              destination / "Exercise_13_Solution.ipynb"
-          ).exists():
-
-              readme.append(
-                  "- ✅ Exercise solution — **AVAILABLE**"
-              )
-
-          else:
-
-              readme.append(
-                  f"- ⏳ Exercise solution — "
-                  f"available at **{solution_time.strftime('%H:%M')}**"
-              )
-
-
-          # --------------------------------------------------
-          # Homework question
-          # --------------------------------------------------
-
-          if release_homework or (
-              destination / "Homework_13_Question.ipynb"
-          ).exists():
-
-              readme.append(
-                  "- ✅ Homework question — **AVAILABLE**"
-              )
-
-          else:
-
-              readme.append(
-                  f"- ⏳ Homework question — "
-                  f"available at **{homework_time.strftime('%H:%M')}**"
-              )
-
-
-          # ==================================================
-          # WRITE README
-          # ==================================================
-
-          readme.append("")
-
-          readme.append(
-              "Release times are shown in "
-              "**Central European Time (Berlin)**."
-          )
-
-
-          status_file = destination / "README.md"
-
-          status_file.write_text(
-              "\n".join(readme) + "\n",
-              encoding="utf-8"
-          )
-
-
-          print("")
-          print("==========================================")
-          print("STUDENT-FACING STATUS")
-          print("==========================================")
-          print(
-              "\n".join(readme)
-          )
-          print("==========================================")
 
 
           # ==================================================
@@ -543,7 +426,7 @@ jobs:
 
           print("")
           print("==========================================")
-          print("CURRENT Lecture-13 CONTENT")
+          print("CURRENT LECTURE 13 CONTENT")
           print("==========================================")
 
 
@@ -562,9 +445,9 @@ jobs:
           PY
 
 
-      # --------------------------------------------------
+      # ==================================================
       # 6. Commit changes
-      # --------------------------------------------------
+      # ==================================================
       - name: Commit changes
         run: |
 
@@ -574,16 +457,18 @@ jobs:
           git config user.email \
             "41898282+github-actions[bot]@users.noreply.github.com"
 
+
           git add Lecture-13
+
 
           if git diff --cached --quiet; then
 
-            echo "No new changes to commit."
+            echo "No changes to commit."
 
           else
 
             git commit \
-              -m "Update Lecture 13 materials"
+              -m "Release Lecture 13 materials"
 
             git push
 
