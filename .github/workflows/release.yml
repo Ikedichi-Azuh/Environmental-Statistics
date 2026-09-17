@@ -87,16 +87,16 @@ jobs:
           # ==================================================
           # TEMPORARY TEST RELEASE TIMES
           #
-          # 23:15 -> README + slides + teaching notes
-          # 23:20 -> exercise question + data
-          # 23:25 -> exercise solution
-          # 23:26 -> homework question
+          # 00:02 -> README + slides + teaching notes
+          # 00:05 -> exercise question + data
+          # 00:06 -> exercise solution
+          # 00:07 -> homework question
           # ==================================================
 
-          slides_time = time(23, 15)
-          exercise_time = time(23, 20)
-          solution_time = time(23, 25)
-          homework_time = time(23, 26)
+          slides_time = time(00, 02)
+          exercise_time = time(00, 05)
+          solution_time = time(00, 06)
+          homework_time = time(00, 07)
 
 
           # ==================================================
