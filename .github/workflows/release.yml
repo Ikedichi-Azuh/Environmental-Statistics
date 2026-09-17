@@ -87,7 +87,8 @@ jobs:
           # ==================================================
           # REAL LECTURE 13 RELEASE TIMES
           #
-          # 08:45 -> README + slides + teaching notes
+          # README -> available immediately
+          # 08:45 -> slides + teaching notes
           # 10:00 -> exercise question + data
           # 12:00 -> exercise solution
           # 12:01 -> homework question
@@ -233,14 +234,136 @@ jobs:
 
 
           # ==================================================
-          # RELEASE / SYNCHRONIZE MATERIALS
+          # README
+          #
+          # The private README is always used as the source.
+          #
+          # Before 08:45 on Lecture 13 day, or before the
+          # lecture date:
+          #
+          #   private README
+          #   +
+          #   "Materials not yet available."
+          #
+          # From 08:45 on Lecture 13 day onward:
+          #
+          #   private README
+          #   +
+          #   "Materials available."
+          #
+          # The private README itself is NEVER modified.
+          # ==================================================
+
+          private_readme = source / "README.md"
+          public_readme = destination / "README.md"
+
+
+          if private_readme.exists():
+
+              readme_text = private_readme.read_text(
+                  encoding="utf-8"
+              ).rstrip()
+
+
+              readme_text += "\n\n---\n\n"
+
+              readme_text += (
+                  "## Material availability\n\n"
+              )
+
+
+              # ----------------------------------------------
+              # BEFORE MATERIAL RELEASE
+              # ----------------------------------------------
+
+              if (
+                  today < lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time < slides_time
+                  )
+              ):
+
+                  readme_text += (
+                      "**Materials not yet available.**\n\n"
+                  )
+
+                  readme_text += (
+                      f"Materials will be released on "
+                      f"**{lecture_date.strftime('%d %B %Y')}** "
+                      f"from **{slides_time.strftime('%H:%M')}** "
+                      f"(Berlin time).\n"
+                  )
+
+
+              # ----------------------------------------------
+              # MATERIALS AVAILABLE
+              # ----------------------------------------------
+
+              else:
+
+                  readme_text += (
+                      "**Materials available.**\n"
+                  )
+
+
+              public_readme.write_text(
+                  readme_text + "\n",
+                  encoding="utf-8"
+              )
+
+
+              print("")
+              print("==========================================")
+              print("README SYNCHRONIZED")
+              print("==========================================")
+
+              if (
+                  today < lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time < slides_time
+                  )
+              ):
+
+                  print(
+                      "Private README copied."
+                  )
+
+                  print(
+                      "Status: MATERIALS NOT YET AVAILABLE"
+                  )
+
+              else:
+
+                  print(
+                      "Private README copied."
+                  )
+
+                  print(
+                      "Status: MATERIALS AVAILABLE"
+                  )
+
+              print("==========================================")
+
+
+          else:
+
+              print(
+                  "WARNING: README.md not found "
+                  "in private Lecture 13 repository."
+              )
+
+
+          # ==================================================
+          # RELEASE MATERIALS
           # ==================================================
 
           if today == lecture_date:
 
               # ----------------------------------------------
               # 08:45
-              # README + slides + teaching notes
+              # Slides + teaching notes
               # ----------------------------------------------
 
               if release_slides:
@@ -248,14 +371,6 @@ jobs:
                   print("")
                   print(
                       "08:45 release threshold reached."
-                  )
-
-
-                  # The README comes directly from the
-                  # private lecture repository.
-
-                  sync_file(
-                      "README.md"
                   )
 
                   sync_file(
@@ -331,90 +446,6 @@ jobs:
 
               print(
                   "No Lecture 13 materials will be released."
-              )
-
-
-          # ==================================================
-          # BEFORE RELEASE:
-          # CREATE TEMPORARY PUBLIC README
-          #
-          # Once the private README has been released,
-          # we DO NOT overwrite it with this message.
-          # ==================================================
-
-          public_readme = destination / "README.md"
-
-
-          private_readme_released = (
-              public_readme.exists()
-              and (
-                  today > lecture_date
-                  or (
-                      today == lecture_date
-                      and current_time >= slides_time
-                  )
-              )
-          )
-
-
-          if not private_readme_released:
-
-              readme = []
-
-              readme.append(
-                  f"# Lecture {lecture_number}"
-              )
-
-              readme.append("")
-
-              readme.append(
-                  "## MATERIAL NOT YET AVAILABLE"
-              )
-
-              readme.append("")
-
-              readme.append(
-                  f"This lecture will be available on "
-                  f"**{lecture_date.strftime('%d %B %Y')}**."
-              )
-
-              readme.append("")
-
-              readme.append(
-                  f"Materials will be released from "
-                  f"**{slides_time.strftime('%H:%M')}** "
-                  f"(Berlin time)."
-              )
-
-              readme.append("")
-
-
-              public_readme.write_text(
-                  "\n".join(readme) + "\n",
-                  encoding="utf-8"
-              )
-
-
-              print("")
-              print("==========================================")
-              print("TEMPORARY PUBLIC README")
-              print("==========================================")
-              print(
-                  "\n".join(readme)
-              )
-              print("==========================================")
-
-
-          else:
-
-              print("")
-              print(
-                  "Private lecture README is now public."
-              )
-
-              print(
-                  "It will not be replaced by the "
-                  "temporary availability message."
               )
 
 
