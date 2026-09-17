@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  release-lecture-13:
+  release-course-materials:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,19 +23,7 @@ jobs:
 
 
       # ==================================================
-      # 2. Clone private Lecture 13 repository
-      # ==================================================
-      - name: Clone Lecture 13 repository
-        env:
-          TOKEN: ${{ secrets.LECTURE_REPO_TOKEN }}
-        run: |
-          git clone \
-            https://x-access-token:${TOKEN}@github.com/Ikedichi-Azuh/Environmental-Statistics-Lecture-13-Plotting-and-Variable-importance.git \
-            lecture13-source
-
-
-      # ==================================================
-      # 3. Set up Python
+      # 2. Set up Python
       # ==================================================
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -44,7 +32,7 @@ jobs:
 
 
       # ==================================================
-      # 4. Install PyYAML
+      # 3. Install PyYAML
       # ==================================================
       - name: Install Python dependencies
         run: |
@@ -52,16 +40,18 @@ jobs:
 
 
       # ==================================================
-      # 5. Release materials
+      # 4. Release course materials
       # ==================================================
       - name: Release available materials
         env:
           TZ: Europe/Berlin
+          TOKEN: ${{ secrets.LECTURE_REPO_TOKEN }}
         run: |
 
           python <<'PY'
 
           import shutil
+          import subprocess
           import yaml
 
           from pathlib import Path
@@ -72,32 +62,20 @@ jobs:
           # CONFIGURATION
           # ==================================================
 
-          lecture_number = 13
-
-          source = Path("lecture13-source")
-          destination = Path("Lecture-13")
+          SOURCE_ROOT = Path("lecture-sources")
 
 
-          destination.mkdir(
+          # Release times
+          SLIDES_TIME = time(8, 45)
+          EXERCISE_TIME = time(10, 0)
+          SOLUTION_TIME = time(12, 0)
+          HOMEWORK_TIME = time(12, 1)
+
+
+          SOURCE_ROOT.mkdir(
               parents=True,
               exist_ok=True
           )
-
-
-          # ==================================================
-          # REAL LECTURE 13 RELEASE TIMES
-          #
-          # README -> available immediately
-          # 08:45 -> slides + teaching notes
-          # 10:00 -> exercise question + data
-          # 12:00 -> exercise solution
-          # 12:01 -> homework question
-          # ==================================================
-
-          slides_time = time(8, 45)
-          exercise_time = time(10, 0)
-          solution_time = time(12, 0)
-          homework_time = time(12, 1)
 
 
           # ==================================================
@@ -132,81 +110,18 @@ jobs:
               schedule = yaml.safe_load(f)
 
 
-          lecture_dates = {
-              int(lecture["number"]):
-              date.fromisoformat(
-                  str(lecture["date"])
-              )
-              for lecture in schedule["lectures"]
-          }
-
-
-          lecture_date = lecture_dates[
-              lecture_number
-          ]
-
-
-          print(
-              f"Lecture {lecture_number} date: "
-              f"{lecture_date}"
-          )
+          lectures = schedule["lectures"]
 
 
           # ==================================================
-          # DETERMINE RELEASE STATUS
+          # HELPER: SYNCHRONIZE FILE
           # ==================================================
 
-          if today < lecture_date:
-
-              lecture_status = "NOT YET AVAILABLE"
-
-          elif today > lecture_date:
-
-              lecture_status = "AVAILABLE"
-
-          else:
-
-              lecture_status = "RELEASE DAY"
-
-
-          print(
-              f"Lecture status: {lecture_status}"
-          )
-
-
-          # ==================================================
-          # DETERMINE RELEASE STAGES
-          # ==================================================
-
-          release_slides = (
-              today == lecture_date
-              and current_time >= slides_time
-          )
-
-          release_exercise = (
-              today == lecture_date
-              and current_time >= exercise_time
-          )
-
-          release_solution = (
-              today == lecture_date
-              and current_time >= solution_time
-          )
-
-          release_homework = (
-              today == lecture_date
-              and current_time >= homework_time
-          )
-
-
-          # ==================================================
-          # SYNCHRONIZE A FILE
-          #
-          # Existing files WILL be updated if the private
-          # version changes.
-          # ==================================================
-
-          def sync_file(filename):
+          def sync_file(
+              source,
+              destination,
+              filename
+          ):
 
               source_file = source / filename
               destination_file = destination / filename
@@ -234,238 +149,387 @@ jobs:
 
 
           # ==================================================
-          # README
-          #
-          # The private README is always used as the source.
-          #
-          # Before 08:45 on Lecture 13 day, or before the
-          # lecture date:
-          #
-          #   private README
-          #   +
-          #   "Materials not yet available."
-          #
-          # From 08:45 on Lecture 13 day onward:
-          #
-          #   private README
-          #   +
-          #   "Materials available."
-          #
-          # The private README itself is NEVER modified.
+          # PROCESS EACH LECTURE
           # ==================================================
 
-          private_readme = source / "README.md"
-          public_readme = destination / "README.md"
+          for lecture in lectures:
 
+              lecture_number = int(
+                  lecture["number"]
+              )
 
-          if private_readme.exists():
+              lecture_date = date.fromisoformat(
+                  str(lecture["date"])
+              )
 
-              readme_text = private_readme.read_text(
-                  encoding="utf-8"
-              ).rstrip()
-
-
-              readme_text += "\n\n---\n\n"
-
-              readme_text += (
-                  "## Material availability\n\n"
+              repository = lecture.get(
+                  "repository"
               )
 
 
-              # ----------------------------------------------
-              # BEFORE MATERIAL RELEASE
-              # ----------------------------------------------
-
-              if (
-                  today < lecture_date
-                  or (
-                      today == lecture_date
-                      and current_time < slides_time
-                  )
-              ):
-
-                  readme_text += (
-                      "**Materials not yet available.**\n\n"
-                  )
-
-                  readme_text += (
-                      f"Materials will be released on "
-                      f"**{lecture_date.strftime('%d %B %Y')}** "
-                      f"from **{slides_time.strftime('%H:%M')}** "
-                      f"(Berlin time).\n"
-                  )
+              destination = Path(
+                  f"Lecture-{lecture_number:02d}"
+              )
 
 
-              # ----------------------------------------------
-              # MATERIALS AVAILABLE
-              # ----------------------------------------------
-
-              else:
-
-                  readme_text += (
-                      "**Materials available.**\n"
-                  )
-
-
-              public_readme.write_text(
-                  readme_text + "\n",
-                  encoding="utf-8"
+              destination.mkdir(
+                  parents=True,
+                  exist_ok=True
               )
 
 
               print("")
-              print("==========================================")
-              print("README SYNCHRONIZED")
-              print("==========================================")
+              print("")
+              print("##########################################")
+              print(
+                  f"LECTURE {lecture_number}"
+              )
+              print("##########################################")
 
-              if (
-                  today < lecture_date
-                  or (
-                      today == lecture_date
-                      and current_time < slides_time
-                  )
-              ):
+
+              print(
+                  f"Lecture date: {lecture_date}"
+              )
+
+
+              # ==================================================
+              # NO PRIVATE REPOSITORY YET
+              # ==================================================
+
+              if not repository:
 
                   print(
-                      "Private README copied."
+                      "No private repository configured."
                   )
 
                   print(
-                      "Status: MATERIALS NOT YET AVAILABLE"
+                      "README placeholder will be maintained."
                   )
+
+                  continue
+
+
+              # ==================================================
+              # CLONE PRIVATE REPOSITORY
+              # ==================================================
+
+              source = (
+                  SOURCE_ROOT
+                  / f"lecture-{lecture_number:02d}"
+              )
+
+
+              if source.exists():
+
+                  shutil.rmtree(source)
+
+
+              repo_url = (
+                  "https://x-access-token:"
+                  f"{__import__('os').environ['TOKEN']}"
+                  "@github.com/Ikedichi-Azuh/"
+                  f"{repository}.git"
+              )
+
+
+              print(
+                  f"Cloning repository: {repository}"
+              )
+
+
+              result = subprocess.run(
+                  [
+                      "git",
+                      "clone",
+                      repo_url,
+                      str(source)
+                  ],
+                  capture_output=True,
+                  text=True
+              )
+
+
+              if result.returncode != 0:
+
+                  print(
+                      "WARNING: private repository "
+                      "could not be cloned."
+                  )
+
+                  print(
+                      "This lecture will be skipped."
+                  )
+
+                  print(
+                      result.stderr
+                  )
+
+                  continue
+
+
+              print(
+                  "Private repository cloned successfully."
+              )
+
+
+              # ==================================================
+              # README
+              # ==================================================
+
+              private_readme = (
+                  source / "README.md"
+              )
+
+              public_readme = (
+                  destination / "README.md"
+              )
+
+
+              if private_readme.exists():
+
+                  readme_text = (
+                      private_readme
+                      .read_text(
+                          encoding="utf-8"
+                      )
+                      .rstrip()
+                  )
+
+
+                  readme_text += (
+                      "\n\n---\n\n"
+                  )
+
+                  readme_text += (
+                      "## Material availability\n\n"
+                  )
+
+
+                  # ----------------------------------------------
+                  # MATERIALS NOT YET AVAILABLE
+                  # ----------------------------------------------
+
+                  if (
+                      today < lecture_date
+                      or (
+                          today == lecture_date
+                          and current_time < SLIDES_TIME
+                      )
+                  ):
+
+                      readme_text += (
+                          "**Materials not yet available.**\n\n"
+                      )
+
+                      readme_text += (
+                          f"Materials will be released on "
+                          f"**{lecture_date.strftime('%d %B %Y')}** "
+                          f"from **{SLIDES_TIME.strftime('%H:%M')}** "
+                          f"(Berlin time).\n"
+                      )
+
+
+                  # ----------------------------------------------
+                  # MATERIALS AVAILABLE
+                  # ----------------------------------------------
+
+                  else:
+
+                      readme_text += (
+                          "**Materials available.**\n"
+                      )
+
+
+                  public_readme.write_text(
+                      readme_text + "\n",
+                      encoding="utf-8"
+                  )
+
+
+                  print(
+                      "README synchronized."
+                  )
+
 
               else:
 
                   print(
-                      "Private README copied."
+                      "WARNING: README.md not found."
                   )
 
-                  print(
-                      "Status: MATERIALS AVAILABLE"
+
+              # ==================================================
+              # DETERMINE RELEASE STAGES
+              #
+              # IMPORTANT:
+              #
+              # If the workflow somehow misses the exact
+              # lecture day, everything that should already
+              # have been released is still released.
+              # ==================================================
+
+              release_slides = (
+                  today > lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time >= SLIDES_TIME
                   )
-
-              print("==========================================")
-
-
-          else:
-
-              print(
-                  "WARNING: README.md not found "
-                  "in private Lecture 13 repository."
               )
 
 
-          # ==================================================
-          # RELEASE MATERIALS
-          # ==================================================
+              release_exercise = (
+                  today > lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time >= EXERCISE_TIME
+                  )
+              )
 
-          if today == lecture_date:
 
-              # ----------------------------------------------
-              # 08:45
-              # Slides + teaching notes
-              # ----------------------------------------------
+              release_solution = (
+                  today > lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time >= SOLUTION_TIME
+                  )
+              )
+
+
+              release_homework = (
+                  today > lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time >= HOMEWORK_TIME
+                  )
+              )
+
+
+              # ==================================================
+              # RELEASE MATERIALS
+              # ==================================================
 
               if release_slides:
 
-                  print("")
                   print(
-                      "08:45 release threshold reached."
+                      "Slides + teaching notes released."
                   )
+
 
                   sync_file(
-                      "Lecture13_slides.pdf"
+                      source,
+                      destination,
+                      f"Lecture{lecture_number}_slides.pdf"
                   )
+
 
                   sync_file(
-                      "Env_Stat_Lecture13.pdf"
+                      source,
+                      destination,
+                      f"Env_Stat_Lecture{lecture_number}.pdf"
                   )
 
-
-              # ----------------------------------------------
-              # 10:00
-              # Exercise question + data
-              # ----------------------------------------------
 
               if release_exercise:
 
-                  print("")
                   print(
-                      "10:00 release threshold reached."
+                      "Exercise question + data released."
                   )
+
 
                   sync_file(
-                      "Exercise_13_Question.ipynb"
+                      source,
+                      destination,
+                      f"Exercise_{lecture_number}_Question.ipynb"
                   )
 
-                  sync_file(
-                      "diabetes.csv"
-                  )
+
+                  # Data file is lecture-specific.
+                  # If it does not exist, a warning is printed.
+                  #
+                  # For Lecture 13 this is diabetes.csv.
+
+                  data_files = [
+                      file
+                      for file in source.iterdir()
+                      if file.is_file()
+                      and file.suffix.lower()
+                      in [".csv", ".xlsx", ".xls"]
+                  ]
 
 
-              # ----------------------------------------------
-              # 12:00
-              # Exercise solution
-              # ----------------------------------------------
+                  if data_files:
+
+                      for data_file in data_files:
+
+                          sync_file(
+                              source,
+                              destination,
+                              data_file.name
+                          )
+
+                  else:
+
+                      print(
+                          "No exercise data file found."
+                      )
+
 
               if release_solution:
 
-                  print("")
                   print(
-                      "12:00 release threshold reached."
+                      "Exercise solution released."
                   )
+
 
                   sync_file(
-                      "Exercise_13_Solution.ipynb"
+                      source,
+                      destination,
+                      f"Exercise_{lecture_number}_Solution.ipynb"
                   )
 
-
-              # ----------------------------------------------
-              # 12:01
-              # Homework question
-              # ----------------------------------------------
 
               if release_homework:
 
-                  print("")
                   print(
-                      "12:01 release threshold reached."
+                      "Homework question released."
                   )
+
 
                   sync_file(
-                      "Homework_13_Question.ipynb"
+                      source,
+                      destination,
+                      f"Homework_{lecture_number}_Question.ipynb"
                   )
 
 
-          else:
+              # ==================================================
+              # SHOW CURRENT CONTENTS
+              # ==================================================
 
               print("")
               print(
-                  "Today is not Lecture 13 release day."
+                  f"Current Lecture {lecture_number} content:"
               )
 
-              print(
-                  "No Lecture 13 materials will be released."
-              )
+
+              for file in sorted(
+                  destination.iterdir()
+              ):
+
+                  if file.is_file():
+
+                      print(
+                          f"  {file.name}"
+                      )
 
 
           # ==================================================
-          # SHOW CURRENT CONTENTS
+          # FINISHED
           # ==================================================
 
           print("")
           print("==========================================")
-          print("CURRENT LECTURE 13 CONTENT")
-          print("==========================================")
-
-
-          for file in sorted(destination.iterdir()):
-
-              if file.is_file():
-
-                  print(file.name)
-
-
+          print("ALL LECTURES PROCESSED")
           print("==========================================")
           print("Release check completed.")
           print("==========================================")
@@ -475,7 +539,7 @@ jobs:
 
 
       # ==================================================
-      # 6. Commit changes
+      # 5. Commit changes
       # ==================================================
       - name: Commit changes
         run: |
@@ -487,7 +551,7 @@ jobs:
             "41898282+github-actions[bot]@users.noreply.github.com"
 
 
-          git add Lecture-13
+          git add Lecture-*
 
 
           if git diff --cached --quiet; then
@@ -497,7 +561,7 @@ jobs:
           else
 
             git commit \
-              -m "Release Lecture 13 materials"
+              -m "Release course materials"
 
             git push
 
