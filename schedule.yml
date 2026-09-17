@@ -25,15 +25,19 @@ lectures:
 
   - number: 9
     date: 2026-12-08
+    repository: Environmental-Statistics-Lecture-9-Bootstrapping-and-jackknife-
 
   - number: 10
     date: 2026-12-15
 
   - number: 11
     date: 2026-12-22
+    repository: Environmental-Statistics-Lecture-11-Cross-validation-vs-AIC-and-Model-Complexity
 
   - number: 12
     date: 2027-01-12
+    repository: Environmental-Statistics-Lecture-12-CART-Random-Forest-Bagging-and-Boosting
 
   - number: 13
     date: 2027-01-19
+    repository: Environmental-Statistics-Lecture-13-Plotting-and-Variable-importance
