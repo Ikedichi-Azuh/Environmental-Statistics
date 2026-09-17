@@ -2,7 +2,10 @@ name: Release Course Materials
 
 on:
   schedule:
-    - cron: "45 6 * * *"
+    # Check every 5 minutes
+    - cron: "*/5 * * * *"
+
+  # Allows manual testing
   workflow_dispatch:
 
 permissions:
@@ -13,10 +16,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # --------------------------------------------------
+      # 1. Checkout the student repository
+      # --------------------------------------------------
       - name: Checkout student repository
         uses: actions/checkout@v5
 
-      - name: Clone private Lecture 13 repository
+      # --------------------------------------------------
+      # 2. Clone the private Lecture 13 repository
+      # --------------------------------------------------
+      - name: Clone Lecture 13 repository
         env:
           TOKEN: ${{ secrets.LECTURE_REPO_TOKEN }}
         run: |
@@ -24,43 +34,306 @@ jobs:
             https://x-access-token:${TOKEN}@github.com/Ikedichi-Azuh/Environmental-Statistics-Lecture-13-Plotting-and-Variable-importance.git \
             lecture13-source
 
-      - name: Check source files
+      # --------------------------------------------------
+      # 3. Set up Python
+      # --------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      # --------------------------------------------------
+      # 4. Install Python dependency
+      # --------------------------------------------------
+      - name: Install Python dependencies
         run: |
-          echo "Lecture 13 source files:"
-          ls -la lecture13-source
+          pip install pyyaml
 
-      - name: Create Lecture 13 folder
+      # --------------------------------------------------
+      # 5. Determine which materials should be released
+      # --------------------------------------------------
+      - name: Release available materials
+        env:
+          TZ: Europe/Berlin
         run: |
-          mkdir -p Lecture-13
 
-      - name: Release currently available materials
+          python <<'PY'
+
+          import shutil
+          import yaml
+
+          from pathlib import Path
+          from datetime import datetime, date, time
+
+
+          # ==================================================
+          # COURSE CONFIGURATION
+          # ==================================================
+
+          lecture_number = 13
+
+          source = Path("lecture13-source")
+          destination = Path("Lecture-13")
+
+          destination.mkdir(exist_ok=True)
+
+
+          # ==================================================
+          # CURRENT DATE AND TIME
+          # ==================================================
+
+          now = datetime.now()
+
+          today = now.date()
+          current_time = now.time()
+
+          print(f"Berlin date: {today}")
+          print(f"Berlin time: {current_time}")
+
+
+          # ==================================================
+          # READ COURSE SCHEDULE
+          # ==================================================
+
+          with open("schedule.yml", "r", encoding="utf-8") as f:
+              schedule = yaml.safe_load(f)
+
+          lectures = schedule["lectures"]
+
+          lecture_dates = {
+              int(lecture["number"]):
+              date.fromisoformat(str(lecture["date"]))
+              for lecture in lectures
+          }
+
+
+          # ==================================================
+          # GET CURRENT LECTURE DATE
+          # ==================================================
+
+          lecture_date = lecture_dates[lecture_number]
+
+          print(
+              f"Lecture {lecture_number} date: "
+              f"{lecture_date}"
+          )
+
+
+          # ==================================================
+          # PREVIOUS LECTURE
+          # ==================================================
+
+          previous_lecture = lecture_number - 1
+
+          previous_date = lecture_dates.get(
+              previous_lecture
+          )
+
+
+          # ==================================================
+          # FUNCTION TO COPY A FILE
+          # ==================================================
+
+          def copy_file(filename):
+
+              source_file = source / filename
+              destination_file = destination / filename
+
+              if not source_file.exists():
+
+                  print(
+                      f"WARNING: {filename} "
+                      f"does not exist in source repository."
+                  )
+
+                  return
+
+              if destination_file.exists():
+
+                  print(
+                      f"Already released: {filename}"
+                  )
+
+                  return
+
+              shutil.copy2(
+                  source_file,
+                  destination_file
+              )
+
+              print(
+                  f"Released: {filename}"
+              )
+
+
+          # ==================================================
+          # RELEASE LECTURE 13 MATERIALS
+          # ==================================================
+
+          if today == lecture_date:
+
+              print(
+                  f"Today is Lecture {lecture_number}."
+              )
+
+
+              # ------------------------------------------------
+              # 08:45
+              # Slides + teaching notes
+              # ------------------------------------------------
+
+              if current_time >= time(8, 45):
+
+                  print(
+                      "08:45 release reached."
+                  )
+
+                  copy_file(
+                      "Lecture13_slides.pdf"
+                  )
+
+                  copy_file(
+                      "Env_Stat_Lecture13.pdf"
+                  )
+
+
+              # ------------------------------------------------
+              # 10:00
+              # Exercise questions + data
+              # ------------------------------------------------
+
+              if current_time >= time(10, 0):
+
+                  print(
+                      "10:00 release reached."
+                  )
+
+                  copy_file(
+                      "Exercise_13_Question.ipynb"
+                  )
+
+                  copy_file(
+                      "diabetes.csv"
+                  )
+
+
+              # ------------------------------------------------
+              # 12:00
+              # Exercise solution
+              # ------------------------------------------------
+
+              if current_time >= time(12, 0):
+
+                  print(
+                      "12:00 release reached."
+                  )
+
+                  copy_file(
+                      "Exercise_13_Solution.ipynb"
+                  )
+
+
+              # ------------------------------------------------
+              # 12:01
+              # Homework questions
+              # ------------------------------------------------
+
+              if current_time >= time(12, 1):
+
+                  print(
+                      "12:01 release reached."
+                  )
+
+                  copy_file(
+                      "Homework_13_Question.ipynb"
+                  )
+
+
+          else:
+
+              print(
+                  f"Today ({today}) is not Lecture "
+                  f"{lecture_number} ({lecture_date})."
+              )
+
+
+          # ==================================================
+          # PREVIOUS HOMEWORK SOLUTION
+          # ==================================================
+
+          if (
+              today == lecture_date
+              and current_time >= time(8, 45)
+              and previous_date is not None
+          ):
+
+              previous_solution = (
+                  f"Homework_{previous_lecture}_Solution.ipynb"
+              )
+
+              print(
+                  "Previous homework solution due today:"
+              )
+
+              print(
+                  previous_solution
+              )
+
+              print(
+                  "This will be enabled when the workflow "
+                  "is generalized to all lecture repositories."
+              )
+
+
+          # ==================================================
+          # FINISHED
+          # ==================================================
+
+          print(
+              "Release check completed."
+          )
+
+          PY
+
+
+      # --------------------------------------------------
+      # 6. Show currently released files
+      # --------------------------------------------------
+      - name: Show released Lecture 13 files
         run: |
-          TODAY=$(date -u +%Y-%m-%d)
-          TIME=$(date -u +%H:%M)
 
-          echo "Current UTC date: $TODAY"
-          echo "Current UTC time: $TIME"
+          echo "Currently released Lecture 13 materials:"
 
-          cp lecture13-source/README.md Lecture-13/
-          cp lecture13-source/diabetes.csv Lecture-13/
+          find Lecture-13 \
+            -maxdepth 1 \
+            -type f \
+            -print \
+            | sort
 
-          # The actual time-based release logic will be added next.
-          echo "Initial Lecture 13 files copied."
 
-      - name: Show student repository
-        run: |
-          find Lecture-13 -maxdepth 1 -type f -print
-
+      # --------------------------------------------------
+      # 7. Commit newly released materials
+      # --------------------------------------------------
       - name: Commit released materials
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git config user.name \
+            "github-actions[bot]"
+
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add Lecture-13
 
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+
+            echo "No new materials to release."
+
           else
-            git commit -m "Release Lecture 13 materials"
+
+            git commit \
+              -m "Release new course materials"
+
             git push
+
           fi
