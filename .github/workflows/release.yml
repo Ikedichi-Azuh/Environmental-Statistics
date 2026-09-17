@@ -48,7 +48,7 @@ jobs:
           pip install pyyaml
 
       # --------------------------------------------------
-      # 5. Check availability and release materials
+      # 5. Determine availability and release materials
       # --------------------------------------------------
       - name: Release available materials
         env:
@@ -77,6 +77,29 @@ jobs:
 
 
           # ==================================================
+          # TEMPORARY TEST RELEASE TIMES
+          #
+          # 22:47 -> slides + teaching notes
+          # 22:52 -> exercise question + data
+          # 22:57 -> exercise solution
+          # 22:58 -> homework question
+          #
+          # THESE ARE ONLY FOR THE CURRENT TEST.
+          # They will later be changed back to:
+          #
+          # 08:45
+          # 10:00
+          # 12:00
+          # 12:01
+          # ==================================================
+
+          slides_time = time(22, 47)
+          exercise_time = time(22, 52)
+          solution_time = time(22, 57)
+          homework_time = time(22, 58)
+
+
+          # ==================================================
           # CURRENT BERLIN DATE AND TIME
           # ==================================================
 
@@ -85,12 +108,17 @@ jobs:
           today = now.date()
           current_time = now.time()
 
+          print("")
+          print("==========================================")
+          print("COURSE RELEASE CHECK")
+          print("==========================================")
           print(f"Berlin date: {today}")
           print(f"Berlin time: {current_time}")
+          print("==========================================")
 
 
           # ==================================================
-          # READ SCHEDULE
+          # READ COURSE SCHEDULE
           # ==================================================
 
           with open(
@@ -123,69 +151,54 @@ jobs:
 
 
           # ==================================================
-          # STATUS README
+          # DETERMINE OVERALL LECTURE STATUS
           # ==================================================
-
-          status_file = destination / "README.md"
-
 
           if today < lecture_date:
 
-              status_text = f"""# Lecture {lecture_number}
+              lecture_status = "NOT YET AVAILABLE"
 
-          ## NOT YET AVAILABLE
+          elif today > lecture_date:
 
-          This lecture will be available on **{lecture_date.strftime("%d %B %Y")}**.
-
-          Materials will be released progressively during the lecture day.
-          """
-
-              print(
-                  f"Lecture {lecture_number} is NOT YET AVAILABLE."
-              )
-
-
-          elif today == lecture_date:
-
-              status_text = f"""# Lecture {lecture_number}
-
-          ## RELEASE DAY
-
-          Materials are being released progressively today
-          (**{lecture_date.strftime("%d %B %Y")}**).
-
-          """
-
-              print(
-                  f"Lecture {lecture_number} is on its release day."
-              )
-
+              lecture_status = "AVAILABLE"
 
           else:
 
-              status_text = f"""# Lecture {lecture_number}
-
-          ## AVAILABLE
-
-          This lecture was released on
-          **{lecture_date.strftime("%d %B %Y")}**.
-
-          Materials are listed below as they become available.
-          """
-
-              print(
-                  f"Lecture {lecture_number} is AVAILABLE."
-              )
+              lecture_status = "RELEASE DAY"
 
 
-          status_file.write_text(
-              status_text,
-              encoding="utf-8"
+          print(
+              f"Lecture status: {lecture_status}"
           )
 
 
           # ==================================================
-          # COPY FUNCTION
+          # DETERMINE WHICH RELEASE STAGES ARE ACTIVE
+          # ==================================================
+
+          release_slides = (
+              today == lecture_date
+              and current_time >= slides_time
+          )
+
+          release_exercise = (
+              today == lecture_date
+              and current_time >= exercise_time
+          )
+
+          release_solution = (
+              today == lecture_date
+              and current_time >= solution_time
+          )
+
+          release_homework = (
+              today == lecture_date
+              and current_time >= homework_time
+          )
+
+
+          # ==================================================
+          # FUNCTION TO COPY A FILE
           # ==================================================
 
           def copy_file(filename):
@@ -197,8 +210,8 @@ jobs:
               if not source_file.exists():
 
                   print(
-                      f"WARNING: {filename} "
-                      f"does not exist in source repository."
+                      f"WARNING: source file does not exist: "
+                      f"{filename}"
                   )
 
                   return
@@ -220,24 +233,26 @@ jobs:
 
 
               print(
-                  f"Released: {filename}"
+                  f"RELEASED: {filename}"
               )
 
 
           # ==================================================
-          # RELEASE MATERIALS
+          # RELEASE FILES
           # ==================================================
 
           if today == lecture_date:
 
               # ----------------------------------------------
-              # 08:45
+              # 22:47
+              # Slides + teaching notes
               # ----------------------------------------------
 
-              if current_time >= time(22,26):
+              if release_slides:
 
+                  print("")
                   print(
-                      "22:26 release threshold reached."
+                      "22:47 release threshold reached."
                   )
 
                   copy_file(
@@ -250,13 +265,15 @@ jobs:
 
 
               # ----------------------------------------------
-              # 10:00
+              # 22:52
+              # Exercise question + data
               # ----------------------------------------------
 
-              if current_time >= time(10, 0):
+              if release_exercise:
 
+                  print("")
                   print(
-                      "10:00 release threshold reached."
+                      "22:52 release threshold reached."
                   )
 
                   copy_file(
@@ -269,13 +286,15 @@ jobs:
 
 
               # ----------------------------------------------
-              # 12:00
+              # 22:57
+              # Exercise solution
               # ----------------------------------------------
 
-              if current_time >= time(12, 0):
+              if release_solution:
 
+                  print("")
                   print(
-                      "12:00 release threshold reached."
+                      "22:57 release threshold reached."
                   )
 
                   copy_file(
@@ -284,13 +303,15 @@ jobs:
 
 
               # ----------------------------------------------
-              # 12:01
+              # 22:58
+              # Homework question
               # ----------------------------------------------
 
-              if current_time >= time(12, 1):
+              if release_homework:
 
+                  print("")
                   print(
-                      "12:01 release threshold reached."
+                      "22:58 release threshold reached."
                   )
 
                   copy_file(
@@ -300,40 +321,252 @@ jobs:
 
           else:
 
+              print("")
               print(
-                  "No Lecture 13 materials released."
+                  "Today is not Lecture 13 release day."
+              )
+
+              print(
+                  "No Lecture 13 materials will be "
+                  "released today."
               )
 
 
           # ==================================================
-          # FINISHED
+          # CREATE STUDENT-FACING README
+          # ==================================================
+
+          readme = []
+
+          readme.append(
+              f"# Lecture {lecture_number}"
+          )
+
+          readme.append("")
+
+
+          # --------------------------------------------------
+          # NOT YET AVAILABLE
+          # --------------------------------------------------
+
+          if today < lecture_date:
+
+              readme.append(
+                  "## NOT YET AVAILABLE"
+              )
+
+              readme.append("")
+
+              readme.append(
+                  f"This lecture will be available on "
+                  f"**{lecture_date.strftime('%d %B %Y')}**."
+              )
+
+              readme.append("")
+
+
+          # --------------------------------------------------
+          # RELEASE DAY
+          # --------------------------------------------------
+
+          elif today == lecture_date:
+
+              readme.append(
+                  "## RELEASE DAY"
+              )
+
+              readme.append("")
+
+              readme.append(
+                  "Materials are being released progressively."
+              )
+
+              readme.append("")
+
+
+          # --------------------------------------------------
+          # PAST RELEASE DATE
+          # --------------------------------------------------
+
+          else:
+
+              readme.append(
+                  "## AVAILABLE"
+              )
+
+              readme.append("")
+
+
+          # ==================================================
+          # MATERIAL STATUS
+          # ==================================================
+
+          readme.append(
+              "## Material availability"
+          )
+
+          readme.append("")
+
+
+          # --------------------------------------------------
+          # Lecture slides
+          # --------------------------------------------------
+
+          if release_slides or (
+              destination / "Lecture13_slides.pdf"
+          ).exists():
+
+              readme.append(
+                  "- ✅ Lecture slides — **AVAILABLE**"
+              )
+
+          else:
+
+              readme.append(
+                  f"- ⏳ Lecture slides — "
+                  f"available at **{slides_time.strftime('%H:%M')}**"
+              )
+
+
+          # --------------------------------------------------
+          # Teaching notes
+          # --------------------------------------------------
+
+          if release_slides or (
+              destination / "Env_Stat_Lecture13.pdf"
+          ).exists():
+
+              readme.append(
+                  "- ✅ Teaching notes — **AVAILABLE**"
+              )
+
+          else:
+
+              readme.append(
+                  f"- ⏳ Teaching notes — "
+                  f"available at **{slides_time.strftime('%H:%M')}**"
+              )
+
+
+          # --------------------------------------------------
+          # Exercise question
+          # --------------------------------------------------
+
+          if release_exercise or (
+              destination / "Exercise_13_Question.ipynb"
+          ).exists():
+
+              readme.append(
+                  "- ✅ Exercise question — **AVAILABLE**"
+              )
+
+          else:
+
+              readme.append(
+                  f"- ⏳ Exercise question — "
+                  f"available at **{exercise_time.strftime('%H:%M')}**"
+              )
+
+
+          # --------------------------------------------------
+          # Exercise solution
+          # --------------------------------------------------
+
+          if release_solution or (
+              destination / "Exercise_13_Solution.ipynb"
+          ).exists():
+
+              readme.append(
+                  "- ✅ Exercise solution — **AVAILABLE**"
+              )
+
+          else:
+
+              readme.append(
+                  f"- ⏳ Exercise solution — "
+                  f"available at **{solution_time.strftime('%H:%M')}**"
+              )
+
+
+          # --------------------------------------------------
+          # Homework question
+          # --------------------------------------------------
+
+          if release_homework or (
+              destination / "Homework_13_Question.ipynb"
+          ).exists():
+
+              readme.append(
+                  "- ✅ Homework question — **AVAILABLE**"
+              )
+
+          else:
+
+              readme.append(
+                  f"- ⏳ Homework question — "
+                  f"available at **{homework_time.strftime('%H:%M')}**"
+              )
+
+
+          # ==================================================
+          # WRITE README
+          # ==================================================
+
+          readme.append("")
+
+          readme.append(
+              "Release times are shown in "
+              "**Central European Time (Berlin)**."
+          )
+
+
+          status_file = destination / "README.md"
+
+          status_file.write_text(
+              "\n".join(readme) + "\n",
+              encoding="utf-8"
+          )
+
+
+          print("")
+          print("==========================================")
+          print("STUDENT-FACING STATUS")
+          print("==========================================")
+          print(
+              "\n".join(readme)
+          )
+          print("==========================================")
+
+
+          # ==================================================
+          # SHOW CURRENT CONTENTS
           # ==================================================
 
           print("")
+          print("==========================================")
+          print("CURRENT Lecture-13 CONTENT")
+          print("==========================================")
+
+
+          for file in sorted(destination.iterdir()):
+
+              if file.is_file():
+
+                  print(file.name)
+
+
+          print("==========================================")
           print("Release check completed.")
+          print("==========================================")
+
 
           PY
 
 
       # --------------------------------------------------
-      # 6. Show current Lecture 13 contents
+      # 6. Commit changes
       # --------------------------------------------------
-      - name: Show Lecture 13 contents
-        run: |
-
-          echo "Current Lecture-13 contents:"
-
-          find Lecture-13 \
-            -maxdepth 1 \
-            -type f \
-            -print \
-            | sort
-
-
-      # --------------------------------------------------
-      # 7. Commit changes
-      # --------------------------------------------------
-      - name: Commit released materials
+      - name: Commit changes
         run: |
 
           git config user.name \
@@ -346,12 +579,12 @@ jobs:
 
           if git diff --cached --quiet; then
 
-            echo "No new changes."
+            echo "No new changes to commit."
 
           else
 
             git commit \
-              -m "Update Lecture 13 availability"
+              -m "Update Lecture 13 materials"
 
             git push
 
