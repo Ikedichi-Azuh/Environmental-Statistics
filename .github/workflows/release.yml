@@ -52,9 +52,9 @@ jobs:
 
 
       # ==================================================
-      # 5. Synchronize README and release materials
+      # 5. Release materials
       # ==================================================
-      - name: Release Lecture 13
+      - name: Release available materials
         env:
           TZ: Europe/Berlin
         run: |
@@ -77,6 +77,7 @@ jobs:
           source = Path("lecture13-source")
           destination = Path("Lecture-13")
 
+
           destination.mkdir(
               parents=True,
               exist_ok=True
@@ -84,11 +85,9 @@ jobs:
 
 
           # ==================================================
-          # TEMPORARY TEST TIMES
+          # TEMPORARY TEST RELEASE TIMES
           #
-          # README is always available.
-          #
-          # 23:15 -> slides + teaching notes
+          # 23:15 -> README + slides + teaching notes
           # 23:20 -> exercise question + data
           # 23:25 -> exercise solution
           # 23:26 -> homework question
@@ -120,7 +119,7 @@ jobs:
 
 
           # ==================================================
-          # READ SCHEDULE
+          # READ COURSE SCHEDULE
           # ==================================================
 
           with open(
@@ -153,7 +152,7 @@ jobs:
 
 
           # ==================================================
-          # DETERMINE LECTURE STATUS
+          # DETERMINE RELEASE STATUS
           # ==================================================
 
           if today < lecture_date:
@@ -200,7 +199,10 @@ jobs:
 
 
           # ==================================================
-          # FUNCTION TO SYNCHRONIZE A FILE
+          # SYNCHRONIZE A FILE
+          #
+          # Unlike the previous version, an existing file
+          # WILL be updated if the private version changes.
           # ==================================================
 
           def sync_file(filename):
@@ -231,104 +233,14 @@ jobs:
 
 
           # ==================================================
-          # README
-          #
-          # README IS ALWAYS PUBLIC.
-          #
-          # We take the README from the private repository
-          # and append the temporary availability notice.
-          # ==================================================
-
-          private_readme = source / "README.md"
-          public_readme = destination / "README.md"
-
-
-          if not private_readme.exists():
-
-              print(
-                  "WARNING: README.md does not exist "
-                  "in the private repository."
-              )
-
-          else:
-
-              private_readme_text = (
-                  private_readme.read_text(
-                      encoding="utf-8"
-                  )
-              )
-
-
-              # ----------------------------------------------
-              # BEFORE RELEASE
-              # ----------------------------------------------
-
-              if (
-                  today < lecture_date
-                  or (
-                      today == lecture_date
-                      and current_time < slides_time
-                  )
-              ):
-
-                  availability_message = f"""
-
----
-
-## Material availability
-
-**Materials not yet available.**
-
-The materials for this lecture will be released on
-**{lecture_date.strftime('%d %B %Y')}**
-from **{slides_time.strftime('%H:%M')}**
-(Berlin time).
-"""
-
-
-              # ----------------------------------------------
-              # RELEASE DAY / AFTER RELEASE
-              # ----------------------------------------------
-
-              else:
-
-                  availability_message = f"""
-
----
-
-## Material availability
-
-**Materials available.**
-"""
-
-
-              public_readme.write_text(
-                  private_readme_text.rstrip()
-                  + availability_message
-                  + "\n",
-                  encoding="utf-8"
-              )
-
-
-              print("")
-              print("==========================================")
-              print("README SYNCHRONIZED")
-              print("==========================================")
-              print(
-                  "Private Lecture 13 README has been "
-                  "copied to the student repository."
-              )
-              print("==========================================")
-
-
-          # ==================================================
-          # RELEASE MATERIALS
+          # RELEASE / SYNCHRONIZE MATERIALS
           # ==================================================
 
           if today == lecture_date:
 
               # ----------------------------------------------
               # 23:15
+              # README + slides + teaching notes
               # ----------------------------------------------
 
               if release_slides:
@@ -336,6 +248,15 @@ from **{slides_time.strftime('%H:%M')}**
                   print("")
                   print(
                       "23:15 release threshold reached."
+                  )
+
+
+                  # IMPORTANT:
+                  # The README comes directly from the
+                  # private lecture repository.
+
+                  sync_file(
+                      "README.md"
                   )
 
                   sync_file(
@@ -349,6 +270,7 @@ from **{slides_time.strftime('%H:%M')}**
 
               # ----------------------------------------------
               # 23:20
+              # Exercise question + data
               # ----------------------------------------------
 
               if release_exercise:
@@ -369,6 +291,7 @@ from **{slides_time.strftime('%H:%M')}**
 
               # ----------------------------------------------
               # 23:25
+              # Exercise solution
               # ----------------------------------------------
 
               if release_solution:
@@ -385,6 +308,7 @@ from **{slides_time.strftime('%H:%M')}**
 
               # ----------------------------------------------
               # 23:26
+              # Homework question
               # ----------------------------------------------
 
               if release_homework:
@@ -407,7 +331,92 @@ from **{slides_time.strftime('%H:%M')}**
               )
 
               print(
-                  "No scheduled lecture materials released."
+                  "No Lecture 13 materials will be released."
+              )
+
+
+          # ==================================================
+          # BEFORE RELEASE:
+          # CREATE TEMPORARY PUBLIC README
+          #
+          # IMPORTANT:
+          # Once the private README has been released,
+          # we DO NOT overwrite it with this message.
+          # ==================================================
+
+          public_readme = destination / "README.md"
+
+
+          private_readme_released = (
+              public_readme.exists()
+              and (
+                  today > lecture_date
+                  or (
+                      today == lecture_date
+                      and current_time >= slides_time
+                  )
+              )
+          )
+
+
+          if not private_readme_released:
+
+              readme = []
+
+              readme.append(
+                  f"# Lecture {lecture_number}"
+              )
+
+              readme.append("")
+
+              readme.append(
+                  "## MATERIAL NOT YET AVAILABLE"
+              )
+
+              readme.append("")
+
+              readme.append(
+                  f"This lecture will be available on "
+                  f"**{lecture_date.strftime('%d %B %Y')}**."
+              )
+
+              readme.append("")
+
+              readme.append(
+                  f"Materials will be released from "
+                  f"**{slides_time.strftime('%H:%M')}** "
+                  f"(Berlin time)."
+              )
+
+              readme.append("")
+
+
+              public_readme.write_text(
+                  "\n".join(readme) + "\n",
+                  encoding="utf-8"
+              )
+
+
+              print("")
+              print("==========================================")
+              print("TEMPORARY PUBLIC README")
+              print("==========================================")
+              print(
+                  "\n".join(readme)
+              )
+              print("==========================================")
+
+
+          else:
+
+              print("")
+              print(
+                  "Private lecture README is now public."
+              )
+
+              print(
+                  "It will not be replaced by the "
+                  "temporary availability message."
               )
 
 
@@ -459,7 +468,7 @@ from **{slides_time.strftime('%H:%M')}**
           else
 
             git commit \
-              -m "Update Lecture 13 materials"
+              -m "Release Lecture 13 materials"
 
             git push
 
