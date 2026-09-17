@@ -6,8 +6,8 @@ Materials are being released progressively.
 
 ## Material availability
 
-- ⏳ Lecture slides — available at **22:47**
-- ⏳ Teaching notes — available at **22:47**
+- ✅ Lecture slides — **AVAILABLE**
+- ✅ Teaching notes — **AVAILABLE**
 - ✅ Exercise question — **AVAILABLE**
 - ✅ Exercise solution — **AVAILABLE**
 - ✅ Homework question — **AVAILABLE**
