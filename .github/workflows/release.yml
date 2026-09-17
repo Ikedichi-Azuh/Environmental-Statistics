@@ -2,10 +2,8 @@ name: Release Course Materials
 
 on:
   schedule:
-    # Check every 5 minutes
     - cron: "*/5 * * * *"
 
-  # Allows manual testing
   workflow_dispatch:
 
 permissions:
@@ -18,13 +16,13 @@ jobs:
     steps:
 
       # --------------------------------------------------
-      # 1. Checkout the student repository
+      # 1. Checkout student repository
       # --------------------------------------------------
       - name: Checkout student repository
         uses: actions/checkout@v5
 
       # --------------------------------------------------
-      # 2. Clone the private Lecture 13 repository
+      # 2. Clone private Lecture 13 repository
       # --------------------------------------------------
       - name: Clone Lecture 13 repository
         env:
@@ -43,14 +41,14 @@ jobs:
           python-version: "3.x"
 
       # --------------------------------------------------
-      # 4. Install Python dependency
+      # 4. Install PyYAML
       # --------------------------------------------------
       - name: Install Python dependencies
         run: |
           pip install pyyaml
 
       # --------------------------------------------------
-      # 5. Determine which materials should be released
+      # 5. Check availability and release materials
       # --------------------------------------------------
       - name: Release available materials
         env:
@@ -67,7 +65,7 @@ jobs:
 
 
           # ==================================================
-          # COURSE CONFIGURATION
+          # CONFIGURATION
           # ==================================================
 
           lecture_number = 13
@@ -79,7 +77,7 @@ jobs:
 
 
           # ==================================================
-          # CURRENT DATE AND TIME
+          # CURRENT BERLIN DATE AND TIME
           # ==================================================
 
           now = datetime.now()
@@ -92,26 +90,31 @@ jobs:
 
 
           # ==================================================
-          # READ COURSE SCHEDULE
+          # READ SCHEDULE
           # ==================================================
 
-          with open("schedule.yml", "r", encoding="utf-8") as f:
+          with open(
+              "schedule.yml",
+              "r",
+              encoding="utf-8"
+          ) as f:
+
               schedule = yaml.safe_load(f)
 
-          lectures = schedule["lectures"]
 
           lecture_dates = {
               int(lecture["number"]):
-              date.fromisoformat(str(lecture["date"]))
-              for lecture in lectures
+              date.fromisoformat(
+                  str(lecture["date"])
+              )
+              for lecture in schedule["lectures"]
           }
 
 
-          # ==================================================
-          # GET CURRENT LECTURE DATE
-          # ==================================================
+          lecture_date = lecture_dates[
+              lecture_number
+          ]
 
-          lecture_date = lecture_dates[lecture_number]
 
           print(
               f"Lecture {lecture_number} date: "
@@ -120,24 +123,76 @@ jobs:
 
 
           # ==================================================
-          # PREVIOUS LECTURE
+          # STATUS README
           # ==================================================
 
-          previous_lecture = lecture_number - 1
+          status_file = destination / "README.md"
 
-          previous_date = lecture_dates.get(
-              previous_lecture
+
+          if today < lecture_date:
+
+              status_text = f"""# Lecture {lecture_number}
+
+          ## NOT YET AVAILABLE
+
+          This lecture will be available on **{lecture_date.strftime("%d %B %Y")}**.
+
+          Materials will be released progressively during the lecture day.
+          """
+
+              print(
+                  f"Lecture {lecture_number} is NOT YET AVAILABLE."
+              )
+
+
+          elif today == lecture_date:
+
+              status_text = f"""# Lecture {lecture_number}
+
+          ## RELEASE DAY
+
+          Materials are being released progressively today
+          (**{lecture_date.strftime("%d %B %Y")}**).
+
+          """
+
+              print(
+                  f"Lecture {lecture_number} is on its release day."
+              )
+
+
+          else:
+
+              status_text = f"""# Lecture {lecture_number}
+
+          ## AVAILABLE
+
+          This lecture was released on
+          **{lecture_date.strftime("%d %B %Y")}**.
+
+          Materials are listed below as they become available.
+          """
+
+              print(
+                  f"Lecture {lecture_number} is AVAILABLE."
+              )
+
+
+          status_file.write_text(
+              status_text,
+              encoding="utf-8"
           )
 
 
           # ==================================================
-          # FUNCTION TO COPY A FILE
+          # COPY FUNCTION
           # ==================================================
 
           def copy_file(filename):
 
               source_file = source / filename
               destination_file = destination / filename
+
 
               if not source_file.exists():
 
@@ -148,6 +203,7 @@ jobs:
 
                   return
 
+
               if destination_file.exists():
 
                   print(
@@ -156,10 +212,12 @@ jobs:
 
                   return
 
+
               shutil.copy2(
                   source_file,
                   destination_file
               )
+
 
               print(
                   f"Released: {filename}"
@@ -167,25 +225,19 @@ jobs:
 
 
           # ==================================================
-          # RELEASE LECTURE 13 MATERIALS
+          # RELEASE MATERIALS
           # ==================================================
 
           if today == lecture_date:
 
-              print(
-                  f"Today is Lecture {lecture_number}."
-              )
-
-
-              # ------------------------------------------------
+              # ----------------------------------------------
               # 08:45
-              # Slides + teaching notes
-              # ------------------------------------------------
+              # ----------------------------------------------
 
               if current_time >= time(8, 45):
 
                   print(
-                      "08:45 release reached."
+                      "08:45 release threshold reached."
                   )
 
                   copy_file(
@@ -197,15 +249,14 @@ jobs:
                   )
 
 
-              # ------------------------------------------------
+              # ----------------------------------------------
               # 10:00
-              # Exercise questions + data
-              # ------------------------------------------------
+              # ----------------------------------------------
 
               if current_time >= time(10, 0):
 
                   print(
-                      "10:00 release reached."
+                      "10:00 release threshold reached."
                   )
 
                   copy_file(
@@ -217,15 +268,14 @@ jobs:
                   )
 
 
-              # ------------------------------------------------
+              # ----------------------------------------------
               # 12:00
-              # Exercise solution
-              # ------------------------------------------------
+              # ----------------------------------------------
 
               if current_time >= time(12, 0):
 
                   print(
-                      "12:00 release reached."
+                      "12:00 release threshold reached."
                   )
 
                   copy_file(
@@ -233,15 +283,14 @@ jobs:
                   )
 
 
-              # ------------------------------------------------
+              # ----------------------------------------------
               # 12:01
-              # Homework questions
-              # ------------------------------------------------
+              # ----------------------------------------------
 
               if current_time >= time(12, 1):
 
                   print(
-                      "12:01 release reached."
+                      "12:01 release threshold reached."
                   )
 
                   copy_file(
@@ -252,36 +301,7 @@ jobs:
           else:
 
               print(
-                  f"Today ({today}) is not Lecture "
-                  f"{lecture_number} ({lecture_date})."
-              )
-
-
-          # ==================================================
-          # PREVIOUS HOMEWORK SOLUTION
-          # ==================================================
-
-          if (
-              today == lecture_date
-              and current_time >= time(8, 45)
-              and previous_date is not None
-          ):
-
-              previous_solution = (
-                  f"Homework_{previous_lecture}_Solution.ipynb"
-              )
-
-              print(
-                  "Previous homework solution due today:"
-              )
-
-              print(
-                  previous_solution
-              )
-
-              print(
-                  "This will be enabled when the workflow "
-                  "is generalized to all lecture repositories."
+                  "No Lecture 13 materials released."
               )
 
 
@@ -289,20 +309,19 @@ jobs:
           # FINISHED
           # ==================================================
 
-          print(
-              "Release check completed."
-          )
+          print("")
+          print("Release check completed.")
 
           PY
 
 
       # --------------------------------------------------
-      # 6. Show currently released files
+      # 6. Show current Lecture 13 contents
       # --------------------------------------------------
-      - name: Show released Lecture 13 files
+      - name: Show Lecture 13 contents
         run: |
 
-          echo "Currently released Lecture 13 materials:"
+          echo "Current Lecture-13 contents:"
 
           find Lecture-13 \
             -maxdepth 1 \
@@ -312,7 +331,7 @@ jobs:
 
 
       # --------------------------------------------------
-      # 7. Commit newly released materials
+      # 7. Commit changes
       # --------------------------------------------------
       - name: Commit released materials
         run: |
@@ -327,12 +346,12 @@ jobs:
 
           if git diff --cached --quiet; then
 
-            echo "No new materials to release."
+            echo "No new changes."
 
           else
 
             git commit \
-              -m "Release new course materials"
+              -m "Update Lecture 13 availability"
 
             git push
 
