@@ -79,10 +79,10 @@ jobs:
           # ==================================================
           # TEMPORARY TEST RELEASE TIMES
           #
-          # 22:47 -> slides + teaching notes
-          # 22:52 -> exercise question + data
-          # 22:57 -> exercise solution
-          # 22:58 -> homework question
+          # 23:15 -> slides + teaching notes
+          # 23:20 -> exercise question + data
+          # 23:25 -> exercise solution
+          # 23:26 -> homework question
           #
           # THESE ARE ONLY FOR THE CURRENT TEST.
           # They will later be changed back to:
@@ -92,11 +92,10 @@ jobs:
           # 12:00
           # 12:01
           # ==================================================
-
-          slides_time = time(22, 47)
-          exercise_time = time(22, 52)
-          solution_time = time(22, 57)
-          homework_time = time(22, 58)
+          slides_time = time(23, 15)
+          exercise_time = time(23, 20)
+          solution_time = time(23, 25)
+          homework_time = time(23, 26)
 
 
           # ==================================================
