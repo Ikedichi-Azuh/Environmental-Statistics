@@ -1,7 +1,7 @@
 # Lecture 13
 
-## NOT YET AVAILABLE
+## RELEASE DAY
 
-This lecture will be available on **19 January 2027**.
+Materials are being released progressively today
+(**17 September 2026**).
 
-Materials will be released progressively during the lecture day.
