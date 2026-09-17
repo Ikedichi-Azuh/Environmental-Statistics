@@ -1,15 +1,8 @@
 # Lecture 13
 
-## RELEASE DAY
+## MATERIAL NOT YET AVAILABLE
 
-Materials are being released progressively.
+This lecture will be available on **17 September 2026**.
 
-## Material availability
+Materials will be released from **23:25** (Berlin time).
 
-- ✅ Lecture slides — **AVAILABLE**
-- ✅ Teaching notes — **AVAILABLE**
-- ✅ Exercise question — **AVAILABLE**
-- ✅ Exercise solution — **AVAILABLE**
-- ✅ Homework question — **AVAILABLE**
-
-Release times are shown in **Central European Time (Berlin)**.
