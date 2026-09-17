@@ -237,7 +237,7 @@ jobs:
               if current_time >= time(22,26):
 
                   print(
-                      "08:45 release threshold reached."
+                      "22:26 release threshold reached."
                   )
 
                   copy_file(
