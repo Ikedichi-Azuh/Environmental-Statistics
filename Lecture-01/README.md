@@ -15,7 +15,7 @@ By the end of this lecture, you should be able to:
 -	 Recognise the generalised linear model (GLM) framework as a general approach to parameter estimation for a range of statistical models.
 
 ### Statistical tools and workflow
-Throughout this course, **R/Python** will be used for statistical analysis. **Quarto/Jupyter/VS Code** will be used to develop reproducible analyses and reports.
+Throughout this course, **R/Python** will be used for statistical analysis. **Quarto/Jupyter notebook/VS Code** will be used to develop reproducible analyses and reports.
 The emphasis is not only on obtaining statistical results, but also on producing analyses that are reproducible, interpretable, and suitable for scientific communication.
 
 ---
