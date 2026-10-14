@@ -30,5 +30,5 @@ response scale.
 
 **Materials not yet available.**
 
-Materials will be released on **20 October 2026** from **08:45** (Berlin time).
+Materials will be released on **27 October 2026** from **08:45** (Berlin time).
 
