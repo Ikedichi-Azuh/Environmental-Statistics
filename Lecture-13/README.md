@@ -45,5 +45,5 @@ models produce their predictions.
 
 **Materials not yet available.**
 
-Materials will be released on **26 January 2027** from **08:45** (Berlin time).
+Materials will be released on **19 January 2027** from **08:45** (Berlin time).
 
