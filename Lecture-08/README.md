@@ -24,5 +24,5 @@ This lecture distinguishes between two important sources of model misspecificati
 
 **Materials not yet available.**
 
-Materials will be released on **08 December 2026** from **08:45** (Berlin time).
+Materials will be released on **08 December 2026** from **09:30** (Berlin time).
 

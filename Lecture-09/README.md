@@ -26,5 +26,5 @@ In this lecture we cover:
 
 **Materials not yet available.**
 
-Materials will be released on **15 December 2026** from **08:45** (Berlin time).
+Materials will be released on **15 December 2026** from **09:30** (Berlin time).
 
