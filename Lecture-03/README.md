@@ -29,7 +29,5 @@ By the end of this lecture, you should be able to:
 
 ## Material availability
 
-**Materials not yet available.**
-
-Materials will be released on **03 November 2026** from **09:30** (Berlin time).
+**Materials available.**
 
