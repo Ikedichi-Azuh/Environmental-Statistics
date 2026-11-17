@@ -12,7 +12,5 @@ new modelling framework, but to connect the concepts developed so far:
 
 ## Material availability
 
-**Materials not yet available.**
-
-Materials will be released on **17 November 2026** from **09:30** (Berlin time).
+**Materials available.**
 
